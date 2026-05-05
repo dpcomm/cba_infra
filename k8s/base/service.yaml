@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: cba-was-renew
+  labels:
+    app: cba-was-renew
+spec:
+  type: ClusterIP
+  selector:
+    app: cba-was-renew
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000

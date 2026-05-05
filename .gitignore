@@ -1,0 +1,37 @@
+# OS/editor
+.DS_Store
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Terragrunt
+.terragrunt-cache/
+
+# Variable files that may contain secrets
+*.tfvars
+*.tfvars.json
+*.auto.tfvars
+*.auto.tfvars.json
+
+# Local secret/env files
+.env
+.env.*
+!.env.example
+secrets/
+*.secret.yaml
+
+# Local helper script with real credentials (generated from example)
+scripts/create-local-secrets.sh

@@ -1,0 +1,20 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: cba-was-renew
+  annotations:
+    # Adjust this when OKE ingress controller strategy is finalized.
+    kubernetes.io/ingress.class: nginx
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: api.recba.me
+      http:
+        paths:
+          - path: /api/v2
+            pathType: Prefix
+            backend:
+              service:
+                name: cba-was-renew
+                port:
+                  number: 3000
