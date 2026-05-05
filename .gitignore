@@ -30,8 +30,7 @@ override.tf.json
 .env
 .env.*
 !.env.example
+.ocir.env
+.ocir*.env
 secrets/
 *.secret.yaml
-
-# Local helper script with real credentials (generated from example)
-scripts/create-local-secrets.sh
