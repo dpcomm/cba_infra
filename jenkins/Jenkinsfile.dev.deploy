@@ -1,0 +1,31 @@
+pipeline {
+  agent { label 'joey-host' }
+  options { disableConcurrentBuilds() }
+
+  stages {
+    stage('Checkout') {
+      steps { checkout scm }
+    }
+
+    stage('Deploy dev overlay') {
+      steps {
+        sh '''
+          set -e
+          cd "${WORKSPACE}"
+          ./scripts/deploy/deploy-dev.sh
+        '''
+      }
+    }
+
+    stage('Check dev status') {
+      steps {
+        sh '''
+          set -e
+          cd "${WORKSPACE}"
+          kubectl get deploy,svc,ingress -n cba-dev
+          kubectl get pods -n cba-dev
+        '''
+      }
+    }
+  }
+}
