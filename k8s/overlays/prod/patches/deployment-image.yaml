@@ -1,0 +1,11 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cba-was-renewal
+spec:
+  template:
+    spec:
+      containers:
+        - name: cba-was-renewal
+          image: ap-chuncheon-1.ocir.io/axdhp42jvukm/cba_was_renew:PLACEHOLDER_PROD_TAG
+          imagePullPolicy: IfNotPresent

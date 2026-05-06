@@ -1,0 +1,6 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cba-was-renewal
+spec:
+  replicas: 2

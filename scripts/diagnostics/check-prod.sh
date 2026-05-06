@@ -2,4 +2,4 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-exec "${SCRIPT_DIR}/deploy/deploy-prod.sh" "$@"
+exec "${SCRIPT_DIR}/check-cluster.sh" --env prod "$@"

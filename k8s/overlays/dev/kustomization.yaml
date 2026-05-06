@@ -4,5 +4,6 @@ kind: Kustomization
 namespace: cba-dev
 
 resources:
-  - ../../base
-  - nodeport-service.yaml
+  - ../../base/cba-management
+  - ../../base/cba-was-renewal
+  - ingress.yaml

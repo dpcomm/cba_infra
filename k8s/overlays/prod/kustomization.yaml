@@ -4,17 +4,9 @@ kind: Kustomization
 namespace: cba-prod
 
 resources:
-  - ../../base
+  - ../../base/cba-was-renewal
   - ingress.yaml
 
 patches:
-  - target:
-      kind: Deployment
-      name: cba-was-renew
-    patch: |-
-      - op: replace
-        path: /spec/replicas
-        value: 2
-      - op: replace
-        path: /spec/template/spec/containers/0/image
-        value: ap-chuncheon-1.ocir.io/axdhp42jvukm/cba_was_renew:PLACEHOLDER_PROD_TAG
+  - path: patches/deployment-replicas.yaml
+  - path: patches/deployment-image.yaml

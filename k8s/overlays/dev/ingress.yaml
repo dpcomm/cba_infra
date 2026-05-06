@@ -1,21 +1,11 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: cba-prod-ingress
-  annotations:
-    cert-manager.io/cluster-issuer: "letsencrypt-prod"
-    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+  name: cba-dev-ingress
 spec:
   ingressClassName: nginx
-  tls:
-    - hosts:
-        - recba.me
-        - www.recba.me
-        - api.recba.me
-        - admin.recba.me
-      secretName: recba-me-tls
   rules:
-    - host: api.recba.me
+    - host: api.dev.recba.me
       http:
         paths:
           - path: /
@@ -25,7 +15,7 @@ spec:
                 name: cba-was-renewal
                 port:
                   number: 3000
-    - host: admin.recba.me
+    - host: admin.dev.recba.me
       http:
         paths:
           - path: /
