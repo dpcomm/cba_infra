@@ -6,4 +6,6 @@ namespace: cba-dev
 resources:
   - ../../base/cba-management
   - ../../base/cba-was-renewal
+  - cba-was-renewal-email-worker.yaml
+  - cba-was-renewal-push-worker.yaml
   - ingress.yaml

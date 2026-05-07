@@ -9,10 +9,14 @@ kubectl apply -k "${ROOT_DIR}/k8s/overlays/dev"
 
 echo "[2/4] Restarting dev deployments to pick up refreshed latest_dev images"
 kubectl rollout restart deployment/cba-was-renewal -n cba-dev
+kubectl rollout restart deployment/cba-was-renewal-email-worker -n cba-dev
+kubectl rollout restart deployment/cba-was-renewal-push-worker -n cba-dev
 kubectl rollout restart deployment/cba-management -n cba-dev
 
 echo "[3/4] Waiting for rollout"
 kubectl rollout status deployment/cba-was-renewal -n cba-dev
+kubectl rollout status deployment/cba-was-renewal-email-worker -n cba-dev
+kubectl rollout status deployment/cba-was-renewal-push-worker -n cba-dev
 kubectl rollout status deployment/cba-management -n cba-dev
 
 echo "[4/4] Current resources in cba-dev"
@@ -22,6 +26,10 @@ cat <<'EOF'
 [done] Useful log commands
 kubectl logs -n cba-dev deploy/cba-was-renewal
 kubectl logs -n cba-dev deploy/cba-was-renewal -f
+kubectl logs -n cba-dev deploy/cba-was-renewal-email-worker
+kubectl logs -n cba-dev deploy/cba-was-renewal-email-worker -f
+kubectl logs -n cba-dev deploy/cba-was-renewal-push-worker
+kubectl logs -n cba-dev deploy/cba-was-renewal-push-worker -f
 kubectl logs -n cba-dev deploy/cba-management
 kubectl logs -n cba-dev deploy/cba-management -f
 EOF
