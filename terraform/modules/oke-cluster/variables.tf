@@ -54,13 +54,13 @@ variable "availability_domain" {
 variable "node_pool_size" {
   description = "Desired node count in the worker node pool."
   type        = number
-  default     = 3
+  default     = 2
 }
 
 variable "node_shape" {
   description = "OCI shape for worker nodes."
   type        = string
-  default     = "VM.Standard.E4.Flex"
+  default     = "VM.Standard.A1.Flex"
 }
 
 variable "node_shape_ocpus" {
@@ -72,7 +72,7 @@ variable "node_shape_ocpus" {
 variable "node_shape_memory_gbs" {
   description = "Memory size in GB for flex worker nodes."
   type        = number
-  default     = 16
+  default     = 12
 }
 
 variable "node_image_id" {
@@ -83,4 +83,11 @@ variable "node_image_id" {
 variable "node_ssh_public_key" {
   description = "SSH public key content for worker nodes."
   type        = string
+  sensitive   = true
+}
+
+variable "common_tags" {
+  description = "Freeform tags applied to all OCI resources."
+  type        = map(string)
+  default     = {}
 }

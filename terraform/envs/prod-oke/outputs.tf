@@ -13,6 +13,11 @@ output "private_subnet_id" {
   value       = module.network.private_subnet_id
 }
 
+output "mysql_nsg_id" {
+  description = "NSG to attach to the MySQL HeatWave DB system endpoint."
+  value       = module.network.mysql_nsg_id
+}
+
 output "reserved_public_ip_address" {
   description = "Reserved public IP address for OCI load balancer cutover."
   value       = module.network.reserved_public_ip_address

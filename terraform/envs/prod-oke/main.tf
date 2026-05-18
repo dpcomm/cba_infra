@@ -1,12 +1,16 @@
 module "network" {
   source = "../../modules/oci-network"
 
-  compartment_ocid         = var.compartment_ocid
-  name_prefix              = "cba-prod"
-  vcn_cidr                 = var.vcn_cidr
-  public_subnet_cidr       = var.public_subnet_cidr
-  private_subnet_cidr      = var.private_subnet_cidr
-  create_reserved_public_ip = var.create_reserved_public_ip
+  compartment_ocid            = var.compartment_ocid
+  name_prefix                 = "cba-connect"
+  vcn_display_name            = "cba-connect-vcn"
+  public_subnet_display_name  = "cba-connect-subnet"
+  private_subnet_display_name = "cba-connect-private-subnet"
+  vcn_cidr                    = var.vcn_cidr
+  public_subnet_cidr          = var.public_subnet_cidr
+  private_subnet_cidr         = var.private_subnet_cidr
+  create_reserved_public_ip   = var.create_reserved_public_ip
+  common_tags                 = var.common_tags
 }
 
 module "oke_cluster" {
@@ -28,4 +32,5 @@ module "oke_cluster" {
   node_shape_memory_gbs = var.node_shape_memory_gbs
   node_image_id         = var.node_image_id
   node_ssh_public_key   = var.node_ssh_public_key
+  common_tags           = var.common_tags
 }

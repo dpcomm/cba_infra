@@ -9,6 +9,12 @@ variable "name_prefix" {
   default     = "cba-prod"
 }
 
+variable "vcn_display_name" {
+  description = "VCN display name override."
+  type        = string
+  default     = null
+}
+
 variable "vcn_cidr" {
   description = "VCN CIDR block."
   type        = string
@@ -31,6 +37,12 @@ variable "public_subnet_dns_label" {
   default     = "publicsubnet"
 }
 
+variable "public_subnet_display_name" {
+  description = "Public subnet display name override."
+  type        = string
+  default     = null
+}
+
 variable "private_subnet_cidr" {
   description = "Private subnet CIDR block."
   type        = string
@@ -42,8 +54,20 @@ variable "private_subnet_dns_label" {
   default     = "privatesubnet"
 }
 
+variable "private_subnet_display_name" {
+  description = "Private subnet display name override."
+  type        = string
+  default     = null
+}
+
 variable "create_reserved_public_ip" {
   description = "Whether to reserve a public IP for the ingress load balancer cutover."
   type        = bool
   default     = true
+}
+
+variable "common_tags" {
+  description = "Freeform tags applied to all OCI resources."
+  type        = map(string)
+  default     = {}
 }

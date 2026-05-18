@@ -46,8 +46,8 @@ else
   cat <<'EOF'
 Dry-run mode (default): no resources applied.
 To actually apply:
-  ALLOW_PROD_APPLY=true ./scripts/deploy-prod.sh <IMAGE_TAG>
+  ALLOW_PROD_APPLY=true ./scripts/deploy/deploy-prod.sh <IMAGE_TAG>
 or
-  ./scripts/deploy-prod.sh <IMAGE_TAG> --execute
+  ./scripts/deploy/deploy-prod.sh <IMAGE_TAG> --execute
 EOF
 fi

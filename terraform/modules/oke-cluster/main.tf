@@ -3,6 +3,7 @@ resource "oci_containerengine_cluster" "this" {
   kubernetes_version = var.kubernetes_version
   name               = var.cluster_name
   vcn_id             = var.vcn_id
+  freeform_tags      = var.common_tags
 
   endpoint_config {
     is_public_ip_enabled = true
@@ -25,11 +26,12 @@ resource "oci_containerengine_cluster" "this" {
 }
 
 resource "oci_containerengine_node_pool" "this" {
-  cluster_id          = oci_containerengine_cluster.this.id
-  compartment_id      = var.compartment_ocid
-  kubernetes_version  = var.kubernetes_version
-  name                = "${var.cluster_name}-nodepool"
-  node_shape          = var.node_shape
+  cluster_id         = oci_containerengine_cluster.this.id
+  compartment_id     = var.compartment_ocid
+  kubernetes_version = var.kubernetes_version
+  name               = "${var.cluster_name}-nodepool"
+  node_shape         = var.node_shape
+  freeform_tags      = var.common_tags
 
   initial_node_labels {
     key   = "environment"
