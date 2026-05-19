@@ -51,10 +51,22 @@ variable "availability_domain" {
   type        = string
 }
 
+variable "fault_domains" {
+  description = "Fault domains allowed for worker node placement. Leave null to let OCI choose."
+  type        = list(string)
+  default     = null
+}
+
+variable "capacity_reservation_id" {
+  description = "Optional OCI capacity reservation OCID. Null means regular on-demand capacity."
+  type        = string
+  default     = null
+}
+
 variable "node_pool_size" {
   description = "Desired node count in the worker node pool."
   type        = number
-  default     = 2
+  default     = 1
 }
 
 variable "node_shape" {

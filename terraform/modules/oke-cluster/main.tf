@@ -40,8 +40,10 @@ resource "oci_containerengine_node_pool" "this" {
 
   node_config_details {
     placement_configs {
-      availability_domain = var.availability_domain
-      subnet_id           = var.private_subnet_id
+      availability_domain     = var.availability_domain
+      capacity_reservation_id = var.capacity_reservation_id
+      fault_domains           = var.fault_domains
+      subnet_id               = var.private_subnet_id
     }
 
     size = var.node_pool_size

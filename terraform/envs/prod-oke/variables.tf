@@ -98,11 +98,35 @@ variable "node_ssh_public_key" {
 variable "node_pool_size" {
   description = "Worker node count."
   type        = number
-  default     = 2
+  default     = 1
 
   validation {
     condition     = var.node_pool_size >= 1 && var.node_pool_size <= 10
     error_message = "node_pool_size는 1~10 사이여야 합니다."
+  }
+}
+
+variable "fault_domains" {
+  description = "Fault domains allowed for OKE worker node placement."
+  type        = list(string)
+  default     = ["FAULT-DOMAIN-1", "FAULT-DOMAIN-2", "FAULT-DOMAIN-3"]
+
+  validation {
+    condition = alltrue([
+      for fault_domain in var.fault_domains : contains(["FAULT-DOMAIN-1", "FAULT-DOMAIN-2", "FAULT-DOMAIN-3"], fault_domain)
+    ])
+    error_message = "fault_domains는 FAULT-DOMAIN-1, FAULT-DOMAIN-2, FAULT-DOMAIN-3 중 하나 이상이어야 합니다."
+  }
+}
+
+variable "capacity_reservation_id" {
+  description = "Optional OCI capacity reservation OCID. Null keeps the node pool on regular on-demand capacity."
+  type        = string
+  default     = null
+
+  validation {
+    condition     = var.capacity_reservation_id == null || can(regex("^ocid1\\.capacityreservation\\.", var.capacity_reservation_id))
+    error_message = "capacity_reservation_id는 null이거나 'ocid1.capacityreservation.'으로 시작해야 합니다."
   }
 }
 
