@@ -98,7 +98,7 @@ variable "node_ssh_public_key" {
 variable "node_pool_size" {
   description = "Worker node count."
   type        = number
-  default     = 1
+  default     = 2
 
   validation {
     condition     = var.node_pool_size >= 1 && var.node_pool_size <= 10

@@ -66,7 +66,7 @@ variable "capacity_reservation_id" {
 variable "node_pool_size" {
   description = "Desired node count in the worker node pool."
   type        = number
-  default     = 1
+  default     = 2
 }
 
 variable "node_shape" {
