@@ -6,6 +6,14 @@ resource "oci_core_vcn" "this" {
   freeform_tags  = var.common_tags
 }
 
+data "oci_core_services" "all_region_services" {
+  filter {
+    name   = "name"
+    values = ["All .* Services In Oracle Services Network"]
+    regex  = true
+  }
+}
+
 resource "oci_core_internet_gateway" "this" {
   compartment_id = var.compartment_ocid
   display_name   = "${var.name_prefix}-igw"
@@ -18,6 +26,17 @@ resource "oci_core_nat_gateway" "this" {
   display_name   = "${var.name_prefix}-nat"
   vcn_id         = oci_core_vcn.this.id
   freeform_tags  = var.common_tags
+}
+
+resource "oci_core_service_gateway" "this" {
+  compartment_id = var.compartment_ocid
+  display_name   = "${var.name_prefix}-sgw"
+  vcn_id         = oci_core_vcn.this.id
+  freeform_tags  = var.common_tags
+
+  services {
+    service_id = data.oci_core_services.all_region_services.services[0].id
+  }
 }
 
 resource "oci_core_route_table" "public" {
@@ -43,6 +62,12 @@ resource "oci_core_route_table" "private" {
     destination       = "0.0.0.0/0"
     destination_type  = "CIDR_BLOCK"
     network_entity_id = oci_core_nat_gateway.this.id
+  }
+
+  route_rules {
+    destination       = data.oci_core_services.all_region_services.services[0].cidr_block
+    destination_type  = "SERVICE_CIDR_BLOCK"
+    network_entity_id = oci_core_service_gateway.this.id
   }
 }
 
@@ -76,6 +101,39 @@ resource "oci_core_security_list" "public" {
       max = 443
     }
   }
+
+  ingress_security_rules {
+    description = "Allow OKE worker nodes to reach the Kubernetes API endpoint."
+    protocol    = "6"
+    source      = var.private_subnet_cidr
+
+    tcp_options {
+      min = 6443
+      max = 6443
+    }
+  }
+
+  ingress_security_rules {
+    description = "Allow OKE worker nodes to reach the Kubernetes control plane."
+    protocol    = "6"
+    source      = var.private_subnet_cidr
+
+    tcp_options {
+      min = 12250
+      max = 12250
+    }
+  }
+
+  ingress_security_rules {
+    description = "Allow OKE path discovery from worker nodes."
+    protocol    = "1"
+    source      = var.private_subnet_cidr
+
+    icmp_options {
+      type = 3
+      code = 4
+    }
+  }
 }
 
 resource "oci_core_security_list" "private" {
@@ -92,6 +150,17 @@ resource "oci_core_security_list" "private" {
   ingress_security_rules {
     protocol = "all"
     source   = var.vcn_cidr
+  }
+
+  ingress_security_rules {
+    description = "Allow OKE worker node path discovery."
+    protocol    = "1"
+    source      = "0.0.0.0/0"
+
+    icmp_options {
+      type = 3
+      code = 4
+    }
   }
 }
 
