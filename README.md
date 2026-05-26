@@ -79,6 +79,7 @@ k8s/
   overlays/
     dev/
     prod/
+  cba-connect-helm-charts/
   helm-values/
 
 scripts/
@@ -98,6 +99,28 @@ scripts/diagnostics/check-cluster.sh --env <dev|prod>
 ```
 
 환경별 wrapper 스크립트는 두지 않습니다. 같은 기능이 여러 이름으로 보이면 실행 경로가 헷갈리기 때문입니다.
+
+## Helm Chart 정책
+
+현재 앱 배포의 기본 경로는 Kustomize입니다.
+
+- `k8s/overlays/dev`: dev 앱 배포
+- `k8s/overlays/prod`: prod 앱 배포
+
+`k8s/cba-connect-helm-charts`는 향후 앱 배포를 Helm으로 전환하거나, worker/admin/web 같은 stateless 앱을 같은 패턴으로 늘리기 위한 기본 chart입니다.
+
+외부 인프라 컴포넌트는 Helm chart를 직접 만들지 않고, 공식 chart와 values 파일을 사용합니다.
+
+- ingress-nginx: 외부 chart + `k8s/helm-values/ingress-nginx/*`
+- cert-manager: 외부 chart + `k8s/helm-values/cert-manager/values.yaml`
+
+기본 앱 chart 렌더 예시:
+
+```bash
+helm template cba-was-renewal ./k8s/cba-connect-helm-charts \
+  --namespace cba-prod \
+  -f ./k8s/cba-connect-helm-charts/values/cba-was-renewal-dev.yaml
+```
 
 ## Secret 정책
 

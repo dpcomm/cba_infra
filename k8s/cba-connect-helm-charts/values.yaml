@@ -1,0 +1,93 @@
+nameOverride: ""
+fullnameOverride: ""
+
+replicaCount: 1
+
+image:
+  repository: ap-chuncheon-1.ocir.io/axdhp42jvukm/cba_was_renew
+  tag: latest_dev
+  pullPolicy: Always
+
+imagePullSecrets:
+  - name: ocir-secret
+
+serviceAccount:
+  create: false
+  automount: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext: {}
+securityContext: {}
+
+container:
+  name: app
+  port: 3000
+  portName: http
+
+command: []
+args: []
+
+env: []
+
+envFrom:
+  - secretRef:
+      name: cba-was-renewal-env
+
+service:
+  enabled: true
+  type: ClusterIP
+  port: 3000
+  targetPort: 3000
+  portName: http
+
+ingress:
+  enabled: false
+  className: nginx
+  annotations: {}
+  hosts:
+    - host: api.dev.recba.me
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 768Mi
+
+livenessProbe:
+  enabled: false
+  httpGet:
+    path: /healthz
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 20
+
+readinessProbe:
+  enabled: false
+  httpGet:
+    path: /healthz
+    port: http
+  initialDelaySeconds: 3
+  periodSeconds: 10
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 80
+
+volumes: []
+volumeMounts: []
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

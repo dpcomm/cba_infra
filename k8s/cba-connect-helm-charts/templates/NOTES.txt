@@ -1,0 +1,11 @@
+Release {{ .Release.Name }} has been rendered for namespace {{ .Release.Namespace }}.
+
+Resources:
+  kubectl get deploy{{ if .Values.service.enabled }},svc{{ end }}{{ if .Values.ingress.enabled }},ingress{{ end }} \
+    -n {{ .Release.Namespace }} \
+    -l app.kubernetes.io/instance={{ .Release.Name }}
+
+{{- if .Values.service.enabled }}
+ClusterIP service:
+  {{ include "cba-connect-helm-charts.fullname" . }}:{{ .Values.service.port }}
+{{- end }}
