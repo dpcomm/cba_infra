@@ -3,7 +3,7 @@ set -euo pipefail
 
 usage() {
   cat <<'EOF'
-Usage: create-secrets.sh --env <dev|prod>
+Usage: create-secrets.sh --env <dev|prod> [--namespace <namespace>]
 Optional env vars:
   NAMESPACE      Override namespace
   ENV_FILE       Override app env file path
@@ -11,22 +11,54 @@ Optional env vars:
 EOF
 }
 
-if [[ $# -lt 2 || "${1:-}" != "--env" ]]; then
+TARGET_ENV=""
+NAMESPACE_OVERRIDE=""
+
+while [[ $# -gt 0 ]]; do
+  case "${1}" in
+    --env)
+      if [[ $# -lt 2 ]]; then
+        echo "ERROR: --env requires a value."
+        exit 1
+      fi
+      TARGET_ENV="${2:-}"
+      shift 2
+      ;;
+    --namespace)
+      if [[ $# -lt 2 ]]; then
+        echo "ERROR: --namespace requires a value."
+        exit 1
+      fi
+      NAMESPACE_OVERRIDE="${2:-}"
+      shift 2
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      echo "ERROR: unknown argument: ${1}"
+      usage
+      exit 1
+      ;;
+  esac
+done
+
+if [[ -z "${TARGET_ENV}" ]]; then
   usage
   exit 1
 fi
 
-TARGET_ENV="$2"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 
 case "${TARGET_ENV}" in
   dev)
-    DEFAULT_NAMESPACE="cba-dev"
+    DEFAULT_NAMESPACE="cba-connect-dev"
     DEFAULT_ENV_FILE="${ROOT_DIR}/.env.dev"
     ;;
   prod)
-    DEFAULT_NAMESPACE="cba-prod"
+    DEFAULT_NAMESPACE="cba-connect-prod"
     DEFAULT_ENV_FILE="${ROOT_DIR}/.env.prod"
     ;;
   *)
@@ -36,7 +68,7 @@ case "${TARGET_ENV}" in
     ;;
 esac
 
-NAMESPACE="${NAMESPACE:-${DEFAULT_NAMESPACE}}"
+NAMESPACE="${NAMESPACE_OVERRIDE:-${NAMESPACE:-${DEFAULT_NAMESPACE}}}"
 ENV_FILE="${ENV_FILE:-${DEFAULT_ENV_FILE}}"
 OCIR_ENV_FILE="${OCIR_ENV_FILE:-${ROOT_DIR}/.ocir.env}"
 

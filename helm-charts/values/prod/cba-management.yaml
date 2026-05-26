@@ -1,0 +1,69 @@
+fullnameOverride: cba-management
+
+replicaCount: 2
+
+image:
+  repository: ap-chuncheon-1.ocir.io/axdhp42jvukm/cba_management_v2
+  tag: PLACEHOLDER_PROD_TAG
+  pullPolicy: IfNotPresent
+
+imagePullSecrets:
+  - name: ocir-secret
+
+serviceAccount:
+  create: false
+  name: ""
+
+container:
+  name: cba-management
+  port: 80
+  portName: http
+
+envFrom: []
+
+service:
+  enabled: true
+  type: ClusterIP
+  port: 80
+  targetPort: 80
+  portName: http
+
+readinessProbe:
+  enabled: true
+  httpGet:
+    path: /healthz
+    port: http
+  initialDelaySeconds: 3
+  periodSeconds: 10
+
+livenessProbe:
+  enabled: true
+  httpGet:
+    path: /healthz
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 20
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 300m
+    memory: 256Mi
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+  hosts:
+    - host: admin.recba.me
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: admin-recba-me-tls
+      hosts:
+        - admin.recba.me

@@ -16,14 +16,14 @@ TARGET_ENV="$2"
 
 case "${TARGET_ENV}" in
   dev)
-    NAMESPACE="cba-dev"
-    INGRESS_NAME="cba-dev-ingress"
+    NAMESPACE="cba-connect-dev"
+    INGRESS_NAMES=("cba-was-renewal" "cba-management")
     EXTRA_NAMESPACE="monitoring"
     EXTRA_CHECK_TEXT="Docker Caddy should proxy dev.recba.me, api.dev.recba.me, admin.dev.recba.me to the ingress NodePort."
     ;;
   prod)
-    NAMESPACE="cba-prod"
-    INGRESS_NAME="cba-prod-ingress"
+    NAMESPACE="cba-connect-prod"
+    INGRESS_NAMES=("cba-was-renewal" "cba-management")
     EXTRA_NAMESPACE="cert-manager"
     EXTRA_CHECK_TEXT="DNS for recba.me/api.recba.me/admin.recba.me should point to the OCI Load Balancer."
     ;;
@@ -44,7 +44,13 @@ echo "[3/5] Ingress controller service"
 kubectl get svc -n ingress-nginx
 
 echo "[4/5] Ingress details"
-kubectl describe ingress "${INGRESS_NAME}" -n "${NAMESPACE}"
+for ingress_name in "${INGRESS_NAMES[@]}"; do
+  if kubectl get ingress "${ingress_name}" -n "${NAMESPACE}" >/dev/null 2>&1; then
+    kubectl describe ingress "${ingress_name}" -n "${NAMESPACE}"
+  else
+    echo "Skipping missing ingress/${ingress_name} in ${NAMESPACE}"
+  fi
+done
 
 if [[ "${TARGET_ENV}" == "dev" ]]; then
   cat <<'EOF'
@@ -58,6 +64,6 @@ else
 [5/5] Checks
 - Confirm OCI Load Balancer external IP is assigned to ingress-nginx.
 - Confirm DNS for recba.me/api.recba.me/admin.recba.me points to the OCI Load Balancer.
-- Confirm cert-manager has issued recba-me-tls before switching production traffic.
+- Confirm cert-manager has issued api-recba-me-tls/admin-recba-me-tls before switching production traffic.
 EOF
 fi

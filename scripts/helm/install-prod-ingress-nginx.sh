@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
-VALUES_FILE="${ROOT_DIR}/k8s/helm-values/ingress-nginx/prod-oke-values.yaml"
-
 helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
 helm repo update
 helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \
   --namespace ingress-nginx \
   --create-namespace \
-  -f "${VALUES_FILE}"
+  --wait \
+  --set controller.service.type=LoadBalancer \
+  --set-string 'controller.service.annotations.service\.beta\.kubernetes\.io/oci-load-balancer-shape=flexible' \
+  --set-string 'controller.service.annotations.service\.beta\.kubernetes\.io/oci-load-balancer-shape-flex-min=10' \
+  --set-string 'controller.service.annotations.service\.beta\.kubernetes\.io/oci-load-balancer-shape-flex-max=10'

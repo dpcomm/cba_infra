@@ -1,0 +1,61 @@
+fullnameOverride: cba-was-renewal
+
+replicaCount: 2
+
+image:
+  repository: ap-chuncheon-1.ocir.io/axdhp42jvukm/cba_was_renew
+  tag: PLACEHOLDER_PROD_TAG
+  pullPolicy: IfNotPresent
+
+imagePullSecrets:
+  - name: ocir-secret
+
+serviceAccount:
+  create: false
+  name: ""
+
+container:
+  name: cba-was-renewal
+  port: 3000
+  portName: http
+
+envFrom:
+  - secretRef:
+      name: cba-was-renewal-env
+
+service:
+  enabled: true
+  type: ClusterIP
+  port: 3000
+  targetPort: 3000
+  portName: http
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 768Mi
+
+livenessProbe:
+  enabled: false
+
+readinessProbe:
+  enabled: false
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+  hosts:
+    - host: api.recba.me
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: api-recba-me-tls
+      hosts:
+        - api.recba.me

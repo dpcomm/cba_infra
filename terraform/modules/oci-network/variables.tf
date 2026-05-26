@@ -6,7 +6,7 @@ variable "compartment_ocid" {
 variable "name_prefix" {
   description = "Prefix for OCI network resource names."
   type        = string
-  default     = "cba-prod"
+  default     = "cba-connect"
 }
 
 variable "vcn_display_name" {

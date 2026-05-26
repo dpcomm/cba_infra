@@ -7,7 +7,7 @@ pipeline {
       steps { checkout scm }
     }
 
-    stage('Deploy dev overlay') {
+    stage('Deploy dev apps with Helm') {
       steps {
         sh '''
           set -e
@@ -22,8 +22,9 @@ pipeline {
         sh '''
           set -e
           cd "${WORKSPACE}"
-          kubectl get deploy,svc,ingress -n cba-dev
-          kubectl get pods -n cba-dev
+          helm list -n cba-connect-dev
+          kubectl get deploy,svc,ingress -n cba-connect-dev
+          kubectl get pods -n cba-connect-dev
         '''
       }
     }

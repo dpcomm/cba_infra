@@ -7,5 +7,5 @@ Resources:
 
 {{- if .Values.service.enabled }}
 ClusterIP service:
-  {{ include "cba-connect-helm-charts.fullname" . }}:{{ .Values.service.port }}
+  {{ include "helm-charts.fullname" . }}:{{ .Values.service.port }}
 {{- end }}

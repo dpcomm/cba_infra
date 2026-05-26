@@ -2,7 +2,7 @@ module "namespaces" {
   source = "../../modules/k8s-namespaces"
 
   namespaces = {
-    "cba-dev" = {
+    "cba-connect-dev" = {
       labels = {
         "app.kubernetes.io/part-of" = "cba-connect"
         "environment"               = "dev"

@@ -53,4 +53,12 @@ resources:
     memory: 256Mi
 
 ingress:
-  enabled: false
+  enabled: true
+  className: nginx
+  annotations: {}
+  hosts:
+    - host: admin.dev.recba.me
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []

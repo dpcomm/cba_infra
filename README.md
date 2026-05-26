@@ -19,7 +19,7 @@
 ### Prod
 
 - OCI Load Balancer -> ingress-nginx -> Kubernetes Ingress -> ClusterIP Service -> Pod
-- Kubernetes namespace: `cba-prod`
+- Kubernetes namespace: `cba-connect-prod`
 - 우선 이전 대상: `cba-was-renewal`
 - 추후 단계: admin web, user web, worker, Redis/RabbitMQ 이전
 - MySQL은 OKE 내부에 배포하지 않고 OCI MySQL HeatWave에 연결
@@ -72,15 +72,7 @@ terraform/
     dev-k3s/
     prod-oke/
 
-k8s/
-  base/
-  cluster/
-    prod/
-  overlays/
-    dev/
-    prod/
-  cba-connect-helm-charts/
-  helm-values/
+helm-charts/
 
 scripts/
   secrets/
@@ -102,24 +94,25 @@ scripts/diagnostics/check-cluster.sh --env <dev|prod>
 
 ## Helm Chart 정책
 
-현재 앱 배포의 기본 경로는 Kustomize입니다.
+현재 앱 배포의 기본 경로는 Helm입니다.
 
-- `k8s/overlays/dev`: dev 앱 배포
-- `k8s/overlays/prod`: prod 앱 배포
+- `helm-charts`: 공용 앱 chart
+- `helm-charts/values/dev/*.yaml`: dev 앱 values
+- `helm-charts/values/prod/*.yaml`: prod 앱 values
 
-`k8s/cba-connect-helm-charts`는 향후 앱 배포를 Helm으로 전환하거나, worker/admin/web 같은 stateless 앱을 같은 패턴으로 늘리기 위한 기본 chart입니다.
+앱 Deployment/Service/Ingress는 Helm만 소유합니다. 예전 Kustomize app base/overlay는 제거했습니다.
 
-외부 인프라 컴포넌트는 Helm chart를 직접 만들지 않고, 공식 chart와 values 파일을 사용합니다.
+외부 인프라 컴포넌트는 Helm chart를 직접 만들지 않고, 설치 스크립트에서 공식 chart에 필요한 최소 `--set` 값만 주입합니다.
 
-- ingress-nginx: 외부 chart + `k8s/helm-values/ingress-nginx/*`
-- cert-manager: 외부 chart + `k8s/helm-values/cert-manager/values.yaml`
+- ingress-nginx: `scripts/helm/install-dev-ingress.sh`, `scripts/helm/install-prod-ingress-nginx.sh`
+- cert-manager + prod ClusterIssuer: `scripts/helm/install-prod-cert-manager.sh`
 
 기본 앱 chart 렌더 예시:
 
 ```bash
-helm template cba-was-renewal ./k8s/cba-connect-helm-charts \
-  --namespace cba-prod \
-  -f ./k8s/cba-connect-helm-charts/values/cba-was-renewal-dev.yaml
+helm template cba-was-renewal ./helm-charts \
+  --namespace cba-connect-dev \
+  -f ./helm-charts/values/dev/cba-was-renewal.yaml
 ```
 
 ## Secret 정책
@@ -217,11 +210,10 @@ Plan: 14 to add, 0 to change, 0 to destroy.
 4. 승인 후 `terraform apply`
 5. OKE kubeconfig 설정
 6. ingress-nginx 설치
-7. cert-manager 설치
-8. prod ClusterIssuer 적용
+7. cert-manager와 prod ClusterIssuer 설치
 9. prod namespace/Secret 준비
-10. prod overlay dry-run
-11. 고정 이미지 태그로 prod 배포
+10. 고정 이미지 태그로 Helm render 확인
+11. 승인 후 Helm 배포
 12. DNS 전환 후 새 인증서 발급과 ingress 확인
 
 예시 명령:
@@ -233,40 +225,40 @@ terraform apply
 cd ../../..
 ./scripts/helm/install-prod-ingress-nginx.sh
 ./scripts/helm/install-prod-cert-manager.sh
-kubectl apply -k k8s/cluster/prod
 ./scripts/secrets/create-secrets.sh --env prod
-kubectl apply -k k8s/overlays/prod --dry-run=client
-./scripts/deploy/deploy-prod.sh <FIXED_IMAGE_TAG>
+./scripts/deploy/deploy-prod.sh --was-tag <FIXED_WAS_IMAGE_TAG>
 ```
 
 `deploy-prod.sh`는 기본적으로 dry-run 모드입니다. 실제 적용은 명시적으로 승인할 때만 실행합니다.
 
 ```bash
-./scripts/deploy/deploy-prod.sh <FIXED_IMAGE_TAG> --execute
+./scripts/deploy/deploy-prod.sh --was-tag <FIXED_WAS_IMAGE_TAG> --execute
+./scripts/deploy/deploy-prod.sh --was-tag <FIXED_WAS_IMAGE_TAG> --management-tag <FIXED_MANAGEMENT_IMAGE_TAG> --with-workers --execute
 ```
 
 ## Reserved Public IP 주의
 
 Terraform은 reserved public IP를 생성합니다. 이 IP를 ingress-nginx의 OCI Load Balancer가 실제로 사용하게 하려면, ingress-nginx 설치 시 별도 연결 설정이 필요합니다.
 
-현재 `k8s/helm-values/ingress-nginx/prod-oke-values.yaml`은 LoadBalancer 타입과 shape만 설정합니다. reserved IP를 고정 진입점으로 쓸 계획이면, Terraform apply 이후 출력된 IP를 기준으로 ingress-nginx Service annotation 연결 절차를 추가로 진행해야 합니다.
+현재 prod ingress-nginx 설치 스크립트는 LoadBalancer 타입과 flexible shape만 설정합니다. reserved IP를 고정 진입점으로 쓸 계획이면, Terraform apply 이후 출력된 IP를 기준으로 ingress-nginx Service annotation 연결 절차를 추가로 진행해야 합니다.
 
 ## TLS / cert-manager
 
 기존 단일 서버 클러스터의 TLS Secret은 새 OKE로 복사하지 않습니다.
 
 - 기존 인증서는 `recba.me` 단일 호스트용이었습니다.
-- 새 prod 인증서는 `recba.me`, `www.recba.me`, `api.recba.me`, `admin.recba.me`를 함께 포함해야 합니다.
-- 새 OKE에서는 `k8s/cluster/prod/cluster-issuer.yaml`의 `letsencrypt-prod` ClusterIssuer를 적용하고, prod Ingress를 기준으로 새 인증서를 발급받습니다.
+- 새 OKE에서는 `scripts/helm/install-prod-cert-manager.sh`가 `letsencrypt-prod` ClusterIssuer를 적용하고, prod Helm Ingress를 기준으로 새 인증서를 발급받습니다.
+- API 인증서는 `api-recba-me-tls`, admin 인증서는 `admin-recba-me-tls`로 분리합니다.
 - HTTP-01 challenge를 쓰므로, DNS가 새 OCI Load Balancer를 가리킨 뒤 cert-manager가 challenge 요청을 받아야 인증서가 정상 발급됩니다.
 
 확인 명령:
 
 ```bash
 kubectl get clusterissuer
-kubectl get certificate -n cba-prod
-kubectl describe certificate recba-me-tls -n cba-prod
-kubectl get secret recba-me-tls -n cba-prod
+kubectl get certificate -n cba-connect-prod
+kubectl describe certificate api-recba-me-tls -n cba-connect-prod
+kubectl describe certificate admin-recba-me-tls -n cba-connect-prod
+kubectl get secret api-recba-me-tls admin-recba-me-tls -n cba-connect-prod
 ```
 
 ## Dev 배포
@@ -286,7 +278,8 @@ dev는 `latest_dev` 태그를 재사용하므로 `deploy-dev.sh`가 rollout rest
 - prod 이미지는 고정 태그만 사용
 - `latest_dev` 금지
 - legacy `cba-was` / `cba-was-renew` 배포 금지
-- 배포 대상 WAS는 `cba-was-renewal`만 사용
+- 기본 배포 대상 WAS는 `cba-was-renewal`만 사용
+- admin/worker prod 배포는 `deploy-prod.sh`의 `--management-tag`, `--with-workers`를 명시한 경우에만 수행
 
 ## 진단 명령
 
@@ -294,10 +287,10 @@ dev는 `latest_dev` 태그를 재사용하므로 `deploy-dev.sh`가 rollout rest
 ./scripts/diagnostics/check-cluster.sh --env dev
 ./scripts/diagnostics/check-cluster.sh --env prod
 
-kubectl get pods -n cba-dev
-kubectl get pods -n cba-prod
-kubectl describe ingress -n cba-dev
-kubectl describe ingress -n cba-prod
+kubectl get pods -n cba-connect-dev
+kubectl get pods -n cba-connect-prod
+kubectl describe ingress -n cba-connect-dev
+kubectl describe ingress -n cba-connect-prod
 ```
 
 ## Troubleshooting
