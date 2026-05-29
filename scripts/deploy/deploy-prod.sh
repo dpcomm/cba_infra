@@ -21,7 +21,7 @@ EOF
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 NAMESPACE="${NAMESPACE:-cba-connect-prod}"
-CHART_DIR="${ROOT_DIR}/helm-charts"
+CHART_DIR="${ROOT_DIR}/charts/cba-app"
 VALUES_DIR="${CHART_DIR}/values/prod"
 ALLOW_PROD_APPLY="${ALLOW_PROD_APPLY:-false}"
 

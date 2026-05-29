@@ -43,7 +43,7 @@ fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
-CHART_DIR="${ROOT_DIR}/infra-charts"
+CHART_DIR="${ROOT_DIR}/charts/cba-infra"
 
 case "${TARGET_ENV}" in
   dev)

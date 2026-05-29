@@ -2,9 +2,9 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "helm-charts.fullname" . }}
+  name: {{ include "cba-app.fullname" . }}
   labels:
-    {{- include "helm-charts.labels" . | nindent 4 }}
+    {{- include "cba-app.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.service.type }}
   ports:
@@ -13,5 +13,5 @@ spec:
       protocol: TCP
       name: {{ .Values.service.portName }}
   selector:
-    {{- include "helm-charts.selectorLabels" . | nindent 4 }}
+    {{- include "cba-app.selectorLabels" . | nindent 4 }}
 {{- end }}

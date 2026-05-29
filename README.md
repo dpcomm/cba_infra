@@ -72,7 +72,9 @@ terraform/
     dev-k3s/
     prod-oke/
 
-helm-charts/
+charts/
+  cba-app/
+  cba-infra/
 
 scripts/
   secrets/
@@ -85,6 +87,7 @@ scripts/
 
 ```text
 scripts/secrets/create-secrets.sh --env <dev|prod>
+scripts/helm/install-runtime-infra.sh --env <dev|prod>
 scripts/deploy/deploy-dev.sh
 scripts/deploy/deploy-prod.sh
 scripts/diagnostics/check-cluster.sh --env <dev|prod>
@@ -96,9 +99,10 @@ scripts/diagnostics/check-cluster.sh --env <dev|prod>
 
 현재 앱 배포의 기본 경로는 Helm입니다.
 
-- `helm-charts`: 공용 앱 chart
-- `helm-charts/values/dev/*.yaml`: dev 앱 values
-- `helm-charts/values/prod/*.yaml`: prod 앱 values
+- `charts/cba-app`: 공용 앱 chart
+- `charts/cba-app/values/dev/*.yaml`: dev 앱 values
+- `charts/cba-app/values/prod/*.yaml`: prod 앱 values
+- `charts/cba-infra`: Redis/RabbitMQ 같은 런타임 인프라 chart
 
 앱 Deployment/Service/Ingress는 Helm만 소유합니다. 예전 Kustomize app base/overlay는 제거했습니다.
 
@@ -110,9 +114,9 @@ scripts/diagnostics/check-cluster.sh --env <dev|prod>
 기본 앱 chart 렌더 예시:
 
 ```bash
-helm template cba-was-renewal ./helm-charts \
+helm template cba-was-renewal ./charts/cba-app \
   --namespace cba-connect-dev \
-  -f ./helm-charts/values/dev/cba-was-renewal.yaml
+  -f ./charts/cba-app/values/dev/cba-was-renewal.yaml
 ```
 
 ## Secret 정책

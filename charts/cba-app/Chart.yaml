@@ -1,5 +1,5 @@
 apiVersion: v2
-name: helm-charts
+name: cba-app
 description: A Helm chart for CBA Connect
 
 # A chart can be either an 'application' or a 'library' chart.
