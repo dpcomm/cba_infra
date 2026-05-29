@@ -3,8 +3,9 @@ pipeline {
   options { disableConcurrentBuilds() }
 
   parameters {
-    string(name: 'WAS_TAG', defaultValue: 'latest_dev', description: 'cba_was_renew image tag to deploy to dev, for example dev-202605291041-69d9e5d')
+    string(name: 'WAS_TAG', defaultValue: '', description: 'Optional cba_was_renew image tag to deploy to dev, for example dev-202605291041-69d9e5d')
     string(name: 'MANAGEMENT_TAG', defaultValue: '', description: 'Optional cba_management image tag to deploy to dev')
+    booleanParam(name: 'WAS_ONLY', defaultValue: false, description: 'Deploy only cba-was-renewal and its workers')
   }
 
   stages {
@@ -24,6 +25,9 @@ pipeline {
           fi
           if [ -n "${MANAGEMENT_TAG:-}" ]; then
             args="${args} --management-tag ${MANAGEMENT_TAG}"
+          fi
+          if [ "${WAS_ONLY:-false}" = "true" ]; then
+            args="${args} --was-only"
           fi
 
           ./scripts/deploy/deploy-dev.sh ${args}
