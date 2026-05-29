@@ -271,10 +271,16 @@ kubectl get secret api-recba-me-tls admin-recba-me-tls -n cba-connect-prod
 ./scripts/helm/install-dev-ingress.sh
 ./scripts/secrets/create-secrets.sh --env dev
 ./scripts/deploy/deploy-dev.sh
+./scripts/deploy/deploy-dev.sh --was-tag dev-202605291041-69d9e5d
 ./scripts/diagnostics/check-cluster.sh --env dev
 ```
 
-dev는 `latest_dev` 태그를 재사용하므로 `deploy-dev.sh`가 rollout restart까지 수행합니다.
+dev도 prod처럼 실제 배포에는 고정 태그 사용을 권장합니다.
+
+- WAS Jenkins build는 `latest_dev`와 `dev-YYYYMMDDHHMM-<short-sha>`를 함께 push합니다.
+- Jenkins deploy job은 `WAS_TAG=dev-YYYYMMDDHHMM-<short-sha>`를 받아 Helm에 `image.tag`로 넘깁니다.
+- `latest_dev`는 수동 확인용 별칭으로만 남깁니다.
+- 태그를 넘기지 않고 `deploy-dev.sh`를 직접 실행하면 기존 호환을 위해 `latest_dev`를 쓰고 rollout restart를 수행합니다.
 
 ## Prod 배포 원칙
 
@@ -284,6 +290,28 @@ dev는 `latest_dev` 태그를 재사용하므로 `deploy-dev.sh`가 rollout rest
 - legacy `cba-was` / `cba-was-renew` 배포 금지
 - 기본 배포 대상 WAS는 `cba-was-renewal`만 사용
 - admin/worker prod 배포는 `deploy-prod.sh`의 `--management-tag`, `--with-workers`를 명시한 경우에만 수행
+
+## OCIR 이미지 정리 정책
+
+OCIR에는 배포 추적용 고정 태그와 편의용 mutable 태그가 같이 쌓입니다. 운영 원칙은 “현재 배포 중인 태그는 절대 지우지 않고, 오래된 dev 태그부터 자동/수동 정리”입니다.
+
+권장 보관 기준:
+
+- `latest_dev`: 유지
+- `dev-*`: 최근 20개 또는 최근 14일만 유지
+- `prod-*`: 최근 10개 이상 또는 최근 90일 유지
+- 현재 Helm release가 사용하는 태그는 항상 유지
+
+정리 전에 현재 사용 중인 이미지를 먼저 확인합니다.
+
+```bash
+kubectl get pods -n cba-connect-dev -o jsonpath='{range .items[*]}{.spec.containers[*].image}{"\n"}{end}'
+kubectl get pods -n cba-connect-prod -o jsonpath='{range .items[*]}{.spec.containers[*].image}{"\n"}{end}'
+helm list -n cba-connect-dev
+helm list -n cba-connect-prod
+```
+
+콘솔에서는 `Developer Services > Container Registry > Repositories > cba_was_renew`에서 오래된 `dev-*` 이미지를 먼저 정리합니다. prod 태그는 롤백 지점이므로 수동으로 확인한 뒤 삭제합니다.
 
 ## 진단 명령
 

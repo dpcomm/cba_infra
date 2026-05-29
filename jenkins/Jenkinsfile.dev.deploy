@@ -2,6 +2,11 @@ pipeline {
   agent { label 'joey-host' }
   options { disableConcurrentBuilds() }
 
+  parameters {
+    string(name: 'WAS_TAG', defaultValue: 'latest_dev', description: 'cba_was_renew image tag to deploy to dev, for example dev-202605291041-69d9e5d')
+    string(name: 'MANAGEMENT_TAG', defaultValue: '', description: 'Optional cba_management image tag to deploy to dev')
+  }
+
   stages {
     stage('Checkout') {
       steps { checkout scm }
@@ -12,7 +17,16 @@ pipeline {
         sh '''
           set -e
           cd "${WORKSPACE}"
-          ./scripts/deploy/deploy-dev.sh
+
+          args=""
+          if [ -n "${WAS_TAG:-}" ]; then
+            args="${args} --was-tag ${WAS_TAG}"
+          fi
+          if [ -n "${MANAGEMENT_TAG:-}" ]; then
+            args="${args} --management-tag ${MANAGEMENT_TAG}"
+          fi
+
+          ./scripts/deploy/deploy-dev.sh ${args}
         '''
       }
     }
