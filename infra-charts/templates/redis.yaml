@@ -1,0 +1,81 @@
+{{- if .Values.redis.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "cba-infra.redisName" . }}
+  labels:
+    {{- include "cba-infra.labels" . | nindent 4 }}
+    app.kubernetes.io/name: {{ include "cba-infra.redisName" . }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "cba-infra.redisName" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "cba-infra.redisName" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: redis
+          image: "{{ .Values.redis.image.repository }}:{{ .Values.redis.image.tag }}"
+          imagePullPolicy: {{ .Values.redis.image.pullPolicy }}
+          args:
+            - redis-server
+            - --appendonly
+            - {{ ternary "yes" "no" .Values.redis.persistence.enabled | quote }}
+          ports:
+            - name: redis
+              containerPort: 6379
+          resources:
+            {{- toYaml .Values.redis.resources | nindent 12 }}
+          {{- if .Values.redis.persistence.enabled }}
+          volumeMounts:
+            - name: redis-data
+              mountPath: /data
+          {{- end }}
+      {{- if .Values.redis.persistence.enabled }}
+      volumes:
+        - name: redis-data
+          persistentVolumeClaim:
+            claimName: {{ include "cba-infra.redisName" . }}
+      {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "cba-infra.redisName" . }}
+  labels:
+    {{- include "cba-infra.labels" . | nindent 4 }}
+    app.kubernetes.io/name: {{ include "cba-infra.redisName" . }}
+spec:
+  type: {{ .Values.redis.service.type }}
+  ports:
+    - name: redis
+      port: {{ .Values.redis.service.port }}
+      targetPort: redis
+  selector:
+    app.kubernetes.io/name: {{ include "cba-infra.redisName" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+{{- if .Values.redis.persistence.enabled }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "cba-infra.redisName" . }}
+  labels:
+    {{- include "cba-infra.labels" . | nindent 4 }}
+    app.kubernetes.io/name: {{ include "cba-infra.redisName" . }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.redis.persistence.size }}
+  {{- if .Values.redis.persistence.storageClassName }}
+  storageClassName: {{ .Values.redis.persistence.storageClassName }}
+  {{- end }}
+{{- end }}
+{{- end }}

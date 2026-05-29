@@ -1,0 +1,92 @@
+{{- if .Values.rabbitmq.enabled }}
+{{- $passwordSecret := required "rabbitmq.auth.existingSecret is required" .Values.rabbitmq.auth.existingSecret -}}
+{{- $passwordKey := required "rabbitmq.auth.passwordKey is required" .Values.rabbitmq.auth.passwordKey -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "cba-infra.rabbitmqName" . }}
+  labels:
+    {{- include "cba-infra.labels" . | nindent 4 }}
+    app.kubernetes.io/name: {{ include "cba-infra.rabbitmqName" . }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "cba-infra.rabbitmqName" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "cba-infra.rabbitmqName" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: rabbitmq
+          image: "{{ .Values.rabbitmq.image.repository }}:{{ .Values.rabbitmq.image.tag }}"
+          imagePullPolicy: {{ .Values.rabbitmq.image.pullPolicy }}
+          env:
+            - name: RABBITMQ_DEFAULT_USER
+              value: {{ .Values.rabbitmq.auth.username | quote }}
+            - name: RABBITMQ_DEFAULT_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $passwordSecret }}
+                  key: {{ $passwordKey }}
+          ports:
+            - name: amqp
+              containerPort: 5672
+            - name: management
+              containerPort: 15672
+          resources:
+            {{- toYaml .Values.rabbitmq.resources | nindent 12 }}
+          {{- if .Values.rabbitmq.persistence.enabled }}
+          volumeMounts:
+            - name: rabbitmq-data
+              mountPath: /var/lib/rabbitmq
+          {{- end }}
+      {{- if .Values.rabbitmq.persistence.enabled }}
+      volumes:
+        - name: rabbitmq-data
+          persistentVolumeClaim:
+            claimName: {{ include "cba-infra.rabbitmqName" . }}
+      {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "cba-infra.rabbitmqName" . }}
+  labels:
+    {{- include "cba-infra.labels" . | nindent 4 }}
+    app.kubernetes.io/name: {{ include "cba-infra.rabbitmqName" . }}
+spec:
+  type: {{ .Values.rabbitmq.service.type }}
+  ports:
+    - name: amqp
+      port: {{ .Values.rabbitmq.service.amqpPort }}
+      targetPort: amqp
+    - name: management
+      port: {{ .Values.rabbitmq.service.managementPort }}
+      targetPort: management
+  selector:
+    app.kubernetes.io/name: {{ include "cba-infra.rabbitmqName" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+{{- if .Values.rabbitmq.persistence.enabled }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "cba-infra.rabbitmqName" . }}
+  labels:
+    {{- include "cba-infra.labels" . | nindent 4 }}
+    app.kubernetes.io/name: {{ include "cba-infra.rabbitmqName" . }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.rabbitmq.persistence.size }}
+  {{- if .Values.rabbitmq.persistence.storageClassName }}
+  storageClassName: {{ .Values.rabbitmq.persistence.storageClassName }}
+  {{- end }}
+{{- end }}
+{{- end }}

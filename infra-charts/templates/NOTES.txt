@@ -1,0 +1,9 @@
+Runtime infra release rendered in namespace {{ .Release.Namespace }}.
+
+Internal endpoints:
+{{- if .Values.redis.enabled }}
+  Redis: redis://{{ include "cba-infra.redisName" . }}:{{ .Values.redis.service.port }}
+{{- end }}
+{{- if .Values.rabbitmq.enabled }}
+  RabbitMQ: amqp://{{ .Values.rabbitmq.auth.username }}:<password>@{{ include "cba-infra.rabbitmqName" . }}:{{ .Values.rabbitmq.service.amqpPort }}
+{{- end }}

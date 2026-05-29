@@ -105,6 +105,9 @@ if [[ ! -f "${ENV_FILE}" ]]; then
   exit 1
 fi
 
+echo "[0/2] Ensuring namespace exists: ${NAMESPACE}"
+kubectl create namespace "${NAMESPACE}" --dry-run=client -o yaml | kubectl apply -f -
+
 echo "[1/2] Creating OCIR image pull secret in namespace: ${NAMESPACE}"
 kubectl create secret docker-registry ocir-secret \
   --namespace "${NAMESPACE}" \

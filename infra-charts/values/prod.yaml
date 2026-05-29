@@ -1,0 +1,13 @@
+redis:
+  enabled: true
+  persistence:
+    enabled: false
+
+rabbitmq:
+  enabled: true
+  auth:
+    username: cba
+    existingSecret: rabbitmq-auth
+    passwordKey: password
+  persistence:
+    enabled: false

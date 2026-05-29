@@ -4,7 +4,7 @@ set -euo pipefail
 usage() {
   cat <<'EOF'
 Usage:
-  deploy-prod.sh --was-tag <tag> [--management-tag <tag>] [--with-workers] [--execute]
+  deploy-prod.sh --was-tag <tag> [--was-replicas <count>] [--management-tag <tag>] [--with-workers] [--execute]
   deploy-prod.sh <was-tag> [--execute]
 
 Default mode renders manifests only. Add --execute or set ALLOW_PROD_APPLY=true
@@ -12,6 +12,7 @@ to apply changes to the current Kubernetes context.
 
 Examples:
   ./scripts/deploy/deploy-prod.sh --was-tag 2026.05.26-abcdef
+  ./scripts/deploy/deploy-prod.sh --was-tag 2026.05.26-abcdef --was-replicas 1 --execute
   ./scripts/deploy/deploy-prod.sh --was-tag 2026.05.26-abcdef --with-workers --execute
   ./scripts/deploy/deploy-prod.sh --was-tag 2026.05.26-abcdef --management-tag 2026.05.26-abcdef --execute
 EOF
@@ -25,6 +26,7 @@ VALUES_DIR="${CHART_DIR}/values/prod"
 ALLOW_PROD_APPLY="${ALLOW_PROD_APPLY:-false}"
 
 WAS_IMAGE_TAG=""
+WAS_REPLICAS=""
 MANAGEMENT_IMAGE_TAG=""
 WITH_WORKERS="false"
 EXECUTE_FLAG="false"
@@ -37,6 +39,14 @@ while [[ $# -gt 0 ]]; do
         exit 1
       fi
       WAS_IMAGE_TAG="${2}"
+      shift 2
+      ;;
+    --was-replicas)
+      if [[ $# -lt 2 ]]; then
+        echo "ERROR: --was-replicas requires a value."
+        exit 1
+      fi
+      WAS_REPLICAS="${2}"
       shift 2
       ;;
     --management-tag)
@@ -92,6 +102,10 @@ validate_prod_tag "${WAS_IMAGE_TAG}" "WAS"
 if [[ -n "${MANAGEMENT_IMAGE_TAG}" ]]; then
   validate_prod_tag "${MANAGEMENT_IMAGE_TAG}" "management"
 fi
+if [[ -n "${WAS_REPLICAS}" && ! "${WAS_REPLICAS}" =~ ^[0-9]+$ ]]; then
+  echo "ERROR: --was-replicas must be a non-negative integer."
+  exit 1
+fi
 
 CTX="$(kubectl config current-context)"
 echo "Current kubectl context: ${CTX}"
@@ -110,17 +124,20 @@ helm_render() {
   local release="$1"
   local values_file="$2"
   local image_tag="$3"
+  shift 3
 
   helm template "${release}" "${CHART_DIR}" \
     -n "${NAMESPACE}" \
     -f "${values_file}" \
-    --set "image.tag=${image_tag}"
+    --set "image.tag=${image_tag}" \
+    "$@"
 }
 
 helm_apply() {
   local release="$1"
   local values_file="$2"
   local image_tag="$3"
+  shift 3
 
   helm upgrade --install "${release}" "${CHART_DIR}" \
     -n "${NAMESPACE}" \
@@ -128,7 +145,8 @@ helm_apply() {
     --atomic \
     --timeout 10m \
     -f "${values_file}" \
-    --set "image.tag=${image_tag}"
+    --set "image.tag=${image_tag}" \
+    "$@"
 }
 
 deploy_release() {
@@ -136,21 +154,28 @@ deploy_release() {
   local deployment="$2"
   local values_file="$3"
   local image_tag="$4"
+  shift 4
 
   if should_execute; then
     echo "Deploying ${release} to ${NAMESPACE}"
-    helm_apply "${release}" "${values_file}" "${image_tag}"
+    helm_apply "${release}" "${values_file}" "${image_tag}" "$@"
     kubectl rollout status "deployment/${deployment}" -n "${NAMESPACE}"
   else
     echo "[dry-run] Rendering ${release}"
-    helm_render "${release}" "${values_file}" "${image_tag}" | sed -n '1,180p'
+    helm_render "${release}" "${values_file}" "${image_tag}" "$@" | sed -n '1,180p'
   fi
 }
+
+WAS_HELM_ARGS=()
+if [[ -n "${WAS_REPLICAS}" ]]; then
+  WAS_HELM_ARGS+=(--set "replicaCount=${WAS_REPLICAS}")
+fi
 
 deploy_release "cba-was-renewal" \
   "cba-was-renewal" \
   "${VALUES_DIR}/cba-was-renewal.yaml" \
-  "${WAS_IMAGE_TAG}"
+  "${WAS_IMAGE_TAG}" \
+  "${WAS_HELM_ARGS[@]}"
 
 if [[ "${WITH_WORKERS}" == "true" ]]; then
   deploy_release "cba-was-renewal-push-worker" \
