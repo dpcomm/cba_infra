@@ -1,8 +1,8 @@
-{{- define "cba-infra.name" -}}
+{{- define "cba-runtime.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
-{{- define "cba-infra.fullname" -}}
+{{- define "cba-runtime.fullname" -}}
 {{- if .Values.fullnameOverride -}}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" -}}
 {{- else -}}
@@ -15,16 +15,16 @@
 {{- end -}}
 {{- end -}}
 
-{{- define "cba-infra.labels" -}}
+{{- define "cba-runtime.labels" -}}
 helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end -}}
 
-{{- define "cba-infra.redisName" -}}
+{{- define "cba-runtime.redisName" -}}
 {{- default "redis" .Values.redis.nameOverride | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
-{{- define "cba-infra.rabbitmqName" -}}
+{{- define "cba-runtime.rabbitmqName" -}}
 {{- default "rabbitmq" .Values.rabbitmq.nameOverride | trunc 63 | trimSuffix "-" -}}
 {{- end -}}

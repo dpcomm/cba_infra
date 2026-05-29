@@ -1,6 +1,0 @@
-apiVersion: v2
-name: cba-infra
-description: Runtime infrastructure for CBA Connect on Kubernetes
-type: application
-version: 0.1.0
-appVersion: "0.1.0"

@@ -2,20 +2,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "cba-infra.redisName" . }}
+  name: {{ include "cba-runtime.redisName" . }}
   labels:
-    {{- include "cba-infra.labels" . | nindent 4 }}
-    app.kubernetes.io/name: {{ include "cba-infra.redisName" . }}
+    {{- include "cba-runtime.labels" . | nindent 4 }}
+    app.kubernetes.io/name: {{ include "cba-runtime.redisName" . }}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app.kubernetes.io/name: {{ include "cba-infra.redisName" . }}
+      app.kubernetes.io/name: {{ include "cba-runtime.redisName" . }}
       app.kubernetes.io/instance: {{ .Release.Name }}
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: {{ include "cba-infra.redisName" . }}
+        app.kubernetes.io/name: {{ include "cba-runtime.redisName" . }}
         app.kubernetes.io/instance: {{ .Release.Name }}
     spec:
       containers:
@@ -40,16 +40,16 @@ spec:
       volumes:
         - name: redis-data
           persistentVolumeClaim:
-            claimName: {{ include "cba-infra.redisName" . }}
+            claimName: {{ include "cba-runtime.redisName" . }}
       {{- end }}
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "cba-infra.redisName" . }}
+  name: {{ include "cba-runtime.redisName" . }}
   labels:
-    {{- include "cba-infra.labels" . | nindent 4 }}
-    app.kubernetes.io/name: {{ include "cba-infra.redisName" . }}
+    {{- include "cba-runtime.labels" . | nindent 4 }}
+    app.kubernetes.io/name: {{ include "cba-runtime.redisName" . }}
 spec:
   type: {{ .Values.redis.service.type }}
   ports:
@@ -57,17 +57,17 @@ spec:
       port: {{ .Values.redis.service.port }}
       targetPort: redis
   selector:
-    app.kubernetes.io/name: {{ include "cba-infra.redisName" . }}
+    app.kubernetes.io/name: {{ include "cba-runtime.redisName" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
 {{- if .Values.redis.persistence.enabled }}
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ include "cba-infra.redisName" . }}
+  name: {{ include "cba-runtime.redisName" . }}
   labels:
-    {{- include "cba-infra.labels" . | nindent 4 }}
-    app.kubernetes.io/name: {{ include "cba-infra.redisName" . }}
+    {{- include "cba-runtime.labels" . | nindent 4 }}
+    app.kubernetes.io/name: {{ include "cba-runtime.redisName" . }}
 spec:
   accessModes:
     - ReadWriteOnce

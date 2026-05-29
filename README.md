@@ -74,7 +74,7 @@ terraform/
 
 charts/
   cba-app/
-  cba-infra/
+  cba-runtime/
 
 scripts/
   secrets/
@@ -102,7 +102,7 @@ scripts/diagnostics/check-cluster.sh --env <dev|prod>
 - `charts/cba-app`: 공용 앱 chart
 - `charts/cba-app/values/dev/*.yaml`: dev 앱 values
 - `charts/cba-app/values/prod/*.yaml`: prod 앱 values
-- `charts/cba-infra`: Redis/RabbitMQ 같은 런타임 인프라 chart
+- `charts/cba-runtime`: Redis/RabbitMQ 같은 앱 런타임 chart
 
 앱 Deployment/Service/Ingress는 Helm만 소유합니다. 예전 Kustomize app base/overlay는 제거했습니다.
 

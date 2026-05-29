@@ -1,6 +1,4 @@
-# Keep selector labels stable for existing Helm releases created before the
-# chart directory was renamed to charts/cba-app.
-nameOverride: "helm-charts"
+nameOverride: "cba-app"
 fullnameOverride: ""
 
 replicaCount: 1
