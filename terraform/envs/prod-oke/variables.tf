@@ -139,7 +139,7 @@ variable "node_shape" {
 variable "node_shape_ocpus" {
   description = "OCPUs for worker nodes."
   type        = number
-  default     = 2
+  default     = 1
 
   validation {
     condition     = var.node_shape_ocpus >= 1 && var.node_shape_ocpus <= 80
@@ -150,7 +150,7 @@ variable "node_shape_ocpus" {
 variable "node_shape_memory_gbs" {
   description = "Memory size in GB for worker nodes."
   type        = number
-  default     = 12
+  default     = 6
 
   validation {
     condition     = var.node_shape_memory_gbs >= 1 && var.node_shape_memory_gbs <= 512

@@ -22,7 +22,7 @@ container:
 command:
   - node
 args:
-  - dist/apps/push-worker/src/main.js
+  - dist/apps/push-worker/apps/push-worker/src/main.js
 
 envFrom:
   - secretRef:

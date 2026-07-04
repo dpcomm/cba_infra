@@ -22,7 +22,7 @@ container:
 command:
   - node
 args:
-  - dist/apps/email-worker/src/main.js
+  - dist/apps/email-worker/apps/email-worker/src/main.js
 
 envFrom:
   - secretRef:
