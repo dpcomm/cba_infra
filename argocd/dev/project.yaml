@@ -7,10 +7,17 @@ spec:
   description: CBA Connect WAS development CD
   sourceRepos:
     - https://github.com/dpcomm/cba_infra.git
+    - https://prometheus-community.github.io/helm-charts
   destinations:
     - namespace: cba-connect-dev
       server: https://kubernetes.default.svc
-  clusterResourceWhitelist: []
+    - namespace: monitoring
+      server: https://kubernetes.default.svc
+    - namespace: argocd
+      server: https://kubernetes.default.svc
+  clusterResourceWhitelist:
+    - group: '*'
+      kind: '*'
   namespaceResourceWhitelist:
     - group: '*'
       kind: '*'

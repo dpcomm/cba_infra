@@ -4,7 +4,7 @@ replicaCount: 2
 
 image:
   repository: ap-chuncheon-1.ocir.io/axdhp42jvukm/cba_management_v2
-  tag: PLACEHOLDER_PROD_TAG
+  tag: prod-202607051145-management-v2
   pullPolicy: IfNotPresent
 
 imagePullSecrets:

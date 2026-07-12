@@ -6,3 +6,5 @@ resources:
   - cba-email-worker.yaml
   - cba-push-worker.yaml
   - cba-management.yaml
+  - monitoring.yaml
+  - observability-config.yaml
