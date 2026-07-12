@@ -1,33 +1,25 @@
 fullnameOverride: cba-management
-
 replicaCount: 1
-
 image:
   repository: ap-chuncheon-1.ocir.io/axdhp42jvukm/cba_management_v2
-  tag: latest_dev
+  tag: dev-202607121237-f8a90ae
   pullPolicy: Always
-
 imagePullSecrets:
   - name: ocir-secret
-
 serviceAccount:
   create: false
   name: ""
-
 container:
   name: cba-management
   port: 80
   portName: http
-
 envFrom: []
-
 service:
   enabled: true
   type: ClusterIP
   port: 80
   targetPort: 80
   portName: http
-
 readinessProbe:
   enabled: true
   httpGet:
@@ -35,7 +27,6 @@ readinessProbe:
     port: http
   initialDelaySeconds: 3
   periodSeconds: 10
-
 livenessProbe:
   enabled: true
   httpGet:
@@ -43,7 +34,6 @@ livenessProbe:
     port: http
   initialDelaySeconds: 10
   periodSeconds: 20
-
 resources:
   requests:
     cpu: 50m
@@ -51,7 +41,6 @@ resources:
   limits:
     cpu: 300m
     memory: 256Mi
-
 ingress:
   enabled: true
   className: nginx
