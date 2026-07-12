@@ -6,6 +6,7 @@ coreDns:
 
 grafana:
   enabled: true
+  adminPassword: "여기에원하는비밀번호"
   defaultDashboardsTimezone: Asia/Seoul
   resources:
     requests:
@@ -21,13 +22,11 @@ grafana:
     accessModes:
       - ReadWriteOnce
     size: 5Gi
+  service:
+    type: NodePort
+    nodePort: 31000
   ingress:
-    enabled: true
-    ingressClassName: nginx
-    hosts:
-      - monitoring.dev.recba.me
-    path: /
-    pathType: Prefix
+    enabled: false
   grafana.ini:
     server:
       domain: monitoring.dev.recba.me
