@@ -1,0 +1,16 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: cba-connect-dev
+  namespace: argocd
+spec:
+  description: CBA Connect WAS development CD
+  sourceRepos:
+    - https://github.com/dpcomm/cba_infra.git
+  destinations:
+    - namespace: cba-connect-dev
+      server: https://kubernetes.default.svc
+  clusterResourceWhitelist: []
+  namespaceResourceWhitelist:
+    - group: '*'
+      kind: '*'

@@ -1,0 +1,25 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cba-email-worker-dev
+  namespace: argocd
+spec:
+  project: cba-connect-dev
+  source:
+    repoURL: https://github.com/dpcomm/cba_infra.git
+    targetRevision: main
+    path: charts/cba-app
+    helm:
+      releaseName: cba-was-renewal-email-worker
+      valueFiles:
+        - values/dev/cba-email-worker.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: cba-connect-dev
+  syncPolicy:
+    automated:
+      prune: false
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+  revisionHistoryLimit: 10
