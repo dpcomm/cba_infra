@@ -1,35 +1,27 @@
 fullnameOverride: cba-was-renewal
-
 replicaCount: 1
-
 image:
   repository: ap-chuncheon-1.ocir.io/axdhp42jvukm/cba_was_renew
-  tag: dev-202607121158-414a04a
+  tag: dev-202607121208-a69abd2
   pullPolicy: Always
-
 imagePullSecrets:
   - name: ocir-secret
-
 serviceAccount:
   create: false
   name: ""
-
 container:
   name: cba-was-renewal
   port: 3000
   portName: http
-
 envFrom:
   - secretRef:
       name: cba-was-renewal-env
-
 service:
   enabled: true
   type: ClusterIP
   port: 3000
   targetPort: 3000
   portName: http
-
 resources:
   requests:
     cpu: 100m
@@ -37,13 +29,10 @@ resources:
   limits:
     cpu: 500m
     memory: 768Mi
-
 livenessProbe:
   enabled: false
-
 readinessProbe:
   enabled: false
-
 ingress:
   enabled: true
   className: nginx

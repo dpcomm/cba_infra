@@ -1,42 +1,31 @@
 fullnameOverride: cba-was-renewal-email-worker
-
 replicaCount: 1
-
 image:
   repository: ap-chuncheon-1.ocir.io/axdhp42jvukm/cba_was_renew
-  tag: dev-202607121158-414a04a
+  tag: dev-202607121208-a69abd2
   pullPolicy: Always
-
 imagePullSecrets:
   - name: ocir-secret
-
 serviceAccount:
   create: false
   name: ""
-
 container:
   name: email-worker
   port: 3000
   portName: http
-
 command:
   - node
 args:
   - dist/apps/email-worker/apps/email-worker/src/main.js
-
 envFrom:
   - secretRef:
       name: cba-was-renewal-env
-
 service:
   enabled: false
-
 livenessProbe:
   enabled: false
-
 readinessProbe:
   enabled: false
-
 resources:
   requests:
     cpu: 50m
@@ -44,6 +33,5 @@ resources:
   limits:
     cpu: 300m
     memory: 512Mi
-
 ingress:
   enabled: false
