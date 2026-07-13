@@ -20,8 +20,9 @@
 
 - OCI Load Balancer -> ingress-nginx -> Kubernetes Ingress -> ClusterIP Service -> Pod
 - Kubernetes namespace: `cba-connect-prod`
-- 우선 이전 대상: `cba-was-renewal`
-- 추후 단계: admin web, user web, worker, Redis/RabbitMQ 이전
+- GitHub Actions -> OCIR immutable image -> `cba_infra/main` values commit -> Argo CD -> OKE
+- 운영 대상: `cba-management`, `cba-was-renewal`, email worker, push worker
+- Redis/RabbitMQ: `cba-runtime-infra` Helm release, single-replica StatefulSet + `oci-bv` PVC
 - MySQL은 OKE 내부에 배포하지 않고 OCI MySQL HeatWave에 연결
 - MySQL용 PVC는 사용하지 않음
 
@@ -89,7 +90,7 @@ scripts/
 ```text
 scripts/secrets/create-secrets.sh --env <dev|prod>
 scripts/helm/install-runtime-infra.sh --env <dev|prod>
-scripts/deploy/deploy-prod.sh
+scripts/argocd/bootstrap-prod.sh [--applications]
 scripts/diagnostics/check-cluster.sh --env <dev|prod>
 ```
 
@@ -110,6 +111,21 @@ scripts/diagnostics/check-cluster.sh --env <dev|prod>
 
 - ingress-nginx: `scripts/helm/install-dev-ingress.sh`, `scripts/helm/install-prod-ingress-nginx.sh`
 - cert-manager + prod ClusterIssuer: `scripts/helm/install-prod-cert-manager.sh`
+
+### PROD GitOps
+
+PROD는 GitHub Actions가 OKE에 직접 접근하지 않습니다. 애플리케이션 저장소는
+이미지를 OCIR에 올리고 `cba_infra/main`의 이미지 tag만 갱신합니다. OKE 내부의
+Argo CD가 그 Git commit을 감지해 Helm release를 동기화합니다.
+
+- `cba_app_management/master`: management PROD image tag 갱신
+- `cba_was_renewal/master`: API, email worker, push worker의 같은 PROD image tag 갱신
+- Argo CD application: `argocd/prod/`
+
+초기 Argo CD 설치 및 Redis/RabbitMQ StatefulSet 전환 절차는
+[PROD GitOps runbook](argocd/prod/README.md)을 따른다. 기존
+`scripts/deploy/deploy-prod.sh`는 장애 대응용 수동 Helm 경로로만 남기며, 정상
+배포 경로로 사용하지 않는다.
 
 기본 앱 chart 렌더 예시:
 
@@ -137,6 +153,10 @@ Kubernetes Secret은 Terraform으로 관리하지 않습니다. Secret 생성은
 ./scripts/secrets/create-secrets.sh --env dev
 ./scripts/secrets/create-secrets.sh --env prod
 ```
+
+PROD Redis는 인증을 사용한다. 런타임을 설치하거나 전환할 때
+`scripts/helm/install-runtime-infra.sh --env prod`가 `redis-auth` Secret을 만들고,
+`cba-was-renewal-env`의 `REDIS_URL`은 반드시 비밀번호가 포함된 URL이어야 한다.
 
 `terraform.tfvars`는 로컬 전용 파일입니다. `prod-oke`에서는 최소한 아래 값이 필요합니다.
 

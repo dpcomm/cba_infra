@@ -3,3 +3,7 @@ kind: Kustomization
 resources:
   - project.yaml
   - cba-management.yaml
+  - cba-runtime.yaml
+  - cba-was-renewal.yaml
+  - cba-email-worker.yaml
+  - cba-push-worker.yaml

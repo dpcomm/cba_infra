@@ -1,21 +1,40 @@
 {{- if .Values.redis.enabled }}
-apiVersion: apps/v1
-kind: Deployment
+{{- $redisName := include "cba-runtime.redisName" . }}
+apiVersion: v1
+kind: Service
 metadata:
-  name: {{ include "cba-runtime.redisName" . }}
+  name: {{ $redisName }}-headless
   labels:
     {{- include "cba-runtime.labels" . | nindent 4 }}
-    app.kubernetes.io/name: {{ include "cba-runtime.redisName" . }}
+    app.kubernetes.io/name: {{ $redisName }}
 spec:
+  clusterIP: None
+  ports:
+    - name: redis
+      port: {{ .Values.redis.service.port }}
+      targetPort: redis
+  selector:
+    app.kubernetes.io/name: {{ $redisName }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ $redisName }}
+  labels:
+    {{- include "cba-runtime.labels" . | nindent 4 }}
+    app.kubernetes.io/name: {{ $redisName }}
+spec:
+  serviceName: {{ $redisName }}-headless
   replicas: 1
   selector:
     matchLabels:
-      app.kubernetes.io/name: {{ include "cba-runtime.redisName" . }}
+      app.kubernetes.io/name: {{ $redisName }}
       app.kubernetes.io/instance: {{ .Release.Name }}
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: {{ include "cba-runtime.redisName" . }}
+        app.kubernetes.io/name: {{ $redisName }}
         app.kubernetes.io/instance: {{ .Release.Name }}
     spec:
       containers:
@@ -26,6 +45,18 @@ spec:
             - redis-server
             - --appendonly
             - {{ ternary "yes" "no" .Values.redis.persistence.enabled | quote }}
+            {{- if .Values.redis.auth.enabled }}
+            - --requirepass
+            - $(REDIS_PASSWORD)
+            {{- end }}
+          {{- if .Values.redis.auth.enabled }}
+          env:
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ required "redis.auth.existingSecret is required when Redis auth is enabled" .Values.redis.auth.existingSecret }}
+                  key: {{ required "redis.auth.passwordKey is required when Redis auth is enabled" .Values.redis.auth.passwordKey }}
+          {{- end }}
           ports:
             - name: redis
               containerPort: 6379
@@ -36,20 +67,28 @@ spec:
             - name: redis-data
               mountPath: /data
           {{- end }}
-      {{- if .Values.redis.persistence.enabled }}
-      volumes:
-        - name: redis-data
-          persistentVolumeClaim:
-            claimName: {{ include "cba-runtime.redisName" . }}
-      {{- end }}
+  {{- if .Values.redis.persistence.enabled }}
+  volumeClaimTemplates:
+    - metadata:
+        name: redis-data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: {{ .Values.redis.persistence.size }}
+        {{- if .Values.redis.persistence.storageClassName }}
+        storageClassName: {{ .Values.redis.persistence.storageClassName }}
+        {{- end }}
+  {{- end }}
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "cba-runtime.redisName" . }}
+  name: {{ $redisName }}
   labels:
     {{- include "cba-runtime.labels" . | nindent 4 }}
-    app.kubernetes.io/name: {{ include "cba-runtime.redisName" . }}
+    app.kubernetes.io/name: {{ $redisName }}
 spec:
   type: {{ .Values.redis.service.type }}
   ports:
@@ -57,25 +96,6 @@ spec:
       port: {{ .Values.redis.service.port }}
       targetPort: redis
   selector:
-    app.kubernetes.io/name: {{ include "cba-runtime.redisName" . }}
+    app.kubernetes.io/name: {{ $redisName }}
     app.kubernetes.io/instance: {{ .Release.Name }}
-{{- if .Values.redis.persistence.enabled }}
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: {{ include "cba-runtime.redisName" . }}
-  labels:
-    {{- include "cba-runtime.labels" . | nindent 4 }}
-    app.kubernetes.io/name: {{ include "cba-runtime.redisName" . }}
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: {{ .Values.redis.persistence.size }}
-  {{- if .Values.redis.persistence.storageClassName }}
-  storageClassName: {{ .Values.redis.persistence.storageClassName }}
-  {{- end }}
-{{- end }}
 {{- end }}

@@ -1,7 +1,13 @@
 redis:
   enabled: true
+  auth:
+    enabled: true
+    existingSecret: redis-auth
+    passwordKey: password
   persistence:
-    enabled: false
+    enabled: true
+    size: 5Gi
+    storageClassName: oci-bv
 
 rabbitmq:
   enabled: true
@@ -10,4 +16,6 @@ rabbitmq:
     existingSecret: rabbitmq-auth
     passwordKey: password
   persistence:
-    enabled: false
+    enabled: true
+    size: 20Gi
+    storageClassName: oci-bv
