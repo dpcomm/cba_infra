@@ -1,5 +1,5 @@
 fullnameOverride: cba-was-renewal
-nameOverride: cba-was-renewal
+nameOverride: helm-charts
 
 replicaCount: 2
 

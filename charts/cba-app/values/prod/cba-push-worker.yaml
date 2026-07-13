@@ -1,5 +1,5 @@
 fullnameOverride: cba-was-renewal-push-worker
-nameOverride: cba-was-renewal-push-worker
+nameOverride: helm-charts
 
 replicaCount: 1
 

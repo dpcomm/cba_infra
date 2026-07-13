@@ -1,5 +1,5 @@
 fullnameOverride: cba-was-renewal-email-worker
-nameOverride: cba-was-renewal-email-worker
+nameOverride: helm-charts
 
 replicaCount: 1
 
