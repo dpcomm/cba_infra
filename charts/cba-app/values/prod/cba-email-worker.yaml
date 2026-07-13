@@ -1,4 +1,5 @@
 fullnameOverride: cba-was-renewal-email-worker
+nameOverride: cba-was-renewal-email-worker
 
 replicaCount: 1
 

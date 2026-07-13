@@ -1,4 +1,5 @@
 fullnameOverride: cba-was-renewal
+nameOverride: cba-was-renewal
 
 replicaCount: 2
 
