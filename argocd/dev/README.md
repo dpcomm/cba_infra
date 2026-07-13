@@ -82,5 +82,6 @@ kubectl logs -n cba-connect-dev deploy/cba-was-renewal-email-worker --tail=50
 kubectl logs -n cba-connect-dev deploy/cba-was-renewal-push-worker --tail=50
 ```
 
-Do not run `scripts/deploy/deploy-dev.sh` after Argo CD takes ownership. Manual
-Helm changes will be reverted by Argo CD self-healing.
+Argo CD owns all DEV application releases. Do not run manual Helm upgrades for
+these releases; update the image tag through the application GitHub Actions
+workflow and let Argo CD synchronize the committed values.

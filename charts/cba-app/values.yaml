@@ -5,7 +5,7 @@ replicaCount: 1
 
 image:
   repository: ap-chuncheon-1.ocir.io/axdhp42jvukm/cba_was_renew
-  tag: latest_dev
+  tag: PLACEHOLDER_IMAGE_TAG
   pullPolicy: Always
 
 imagePullSecrets:

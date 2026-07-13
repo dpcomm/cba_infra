@@ -88,7 +88,6 @@ scripts/
 ```text
 scripts/secrets/create-secrets.sh --env <dev|prod>
 scripts/helm/install-runtime-infra.sh --env <dev|prod>
-scripts/deploy/deploy-dev.sh
 scripts/deploy/deploy-prod.sh
 scripts/diagnostics/check-cluster.sh --env <dev|prod>
 ```
@@ -267,37 +266,41 @@ kubectl get secret api-recba-me-tls admin-recba-me-tls -n cba-connect-prod
 
 ## Dev 배포
 
+DEV 애플리케이션 배포는 GitHub Actions와 Argo CD가 소유합니다.
+
+1. `cba_was_renewal/develop` 또는 관리 웹 DEV 대상 브랜치에 푸시합니다.
+2. GitHub Actions가 OCIR에 고정 `dev-*` 태그 이미지를 푸시합니다.
+3. 같은 workflow가 `cba_infra/main`의 DEV Helm values 이미지 태그를 갱신합니다.
+4. Argo CD가 `cba-connect-dev`의 Helm release를 자동 동기화합니다.
+
+클러스터 최초 준비와 진단에만 아래 명령을 사용합니다.
+
 ```bash
 ./scripts/helm/install-dev-ingress.sh
 ./scripts/secrets/create-secrets.sh --env dev
-./scripts/deploy/deploy-dev.sh
-./scripts/deploy/deploy-dev.sh --was-tag dev-202605291041-69d9e5d
+./scripts/helm/install-runtime-infra.sh --env dev
+./scripts/argocd/bootstrap-dev.sh
 ./scripts/diagnostics/check-cluster.sh --env dev
 ```
 
-dev도 prod처럼 실제 배포에는 고정 태그 사용을 권장합니다.
-
-- WAS Jenkins build는 `latest_dev`와 `dev-YYYYMMDDHHMM-<short-sha>`를 함께 push합니다.
-- Jenkins deploy job은 `WAS_TAG=dev-YYYYMMDDHHMM-<short-sha>`를 받아 Helm에 `image.tag`로 넘깁니다.
-- `latest_dev`는 수동 확인용 별칭으로만 남깁니다.
-- 태그를 넘기지 않고 `deploy-dev.sh`를 직접 실행하면 기존 호환을 위해 `latest_dev`를 쓰고 rollout restart를 수행합니다.
+Argo CD가 소유하는 DEV release에 수동 Helm 배포를 실행하지 않습니다. 변경은
+항상 GitOps values commit으로 반영합니다.
 
 ## Prod 배포 원칙
 
 - prod 실제 apply는 수동 승인 후 실행
 - prod 이미지는 고정 태그만 사용
-- `latest_dev` 금지
+- dev 가변 태그 금지
 - legacy `cba-was` / `cba-was-renew` 배포 금지
 - 기본 배포 대상 WAS는 `cba-was-renewal`만 사용
 - admin/worker prod 배포는 `deploy-prod.sh`의 `--management-tag`, `--with-workers`를 명시한 경우에만 수행
 
 ## OCIR 이미지 정리 정책
 
-OCIR에는 배포 추적용 고정 태그와 편의용 mutable 태그가 같이 쌓입니다. 운영 원칙은 “현재 배포 중인 태그는 절대 지우지 않고, 오래된 dev 태그부터 자동/수동 정리”입니다.
+OCIR에는 배포 추적용 고정 태그가 쌓입니다. 운영 원칙은 “현재 배포 중인 태그는 절대 지우지 않고, 오래된 dev 태그부터 자동/수동 정리”입니다.
 
 권장 보관 기준:
 
-- `latest_dev`: 유지
 - `dev-*`: 최근 20개 또는 최근 14일만 유지
 - `prod-*`: 최근 10개 이상 또는 최근 90일 유지
 - 현재 Helm release가 사용하는 태그는 항상 유지

@@ -92,7 +92,7 @@ validate_prod_tag() {
     exit 1
   fi
 
-  if [[ "${tag}" == "latest" || "${tag}" == *"latest_dev"* || "${tag}" == *"PLACEHOLDER"* ]]; then
+  if [[ "${tag}" == "latest" || "${tag}" == *"PLACEHOLDER"* ]]; then
     echo "ERROR: ${label} image tag must be fixed. Refusing tag: ${tag}"
     exit 1
   fi
