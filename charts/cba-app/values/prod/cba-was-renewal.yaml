@@ -1,36 +1,28 @@
 fullnameOverride: cba-was-renewal
 nameOverride: helm-charts
-
 replicaCount: 2
-
 image:
   repository: ap-chuncheon-1.ocir.io/axdhp42jvukm/cba_was_renew
-  tag: prod-202607051258-eae7212
+  tag: prod-202607130500-454278d
   pullPolicy: IfNotPresent
-
 imagePullSecrets:
   - name: ocir-secret
-
 serviceAccount:
   create: false
   name: ""
-
 container:
   name: cba-was-renewal
   port: 3000
   portName: http
-
 envFrom:
   - secretRef:
       name: cba-was-renewal-env
-
 service:
   enabled: true
   type: ClusterIP
   port: 3000
   targetPort: 3000
   portName: http
-
 resources:
   requests:
     cpu: 100m
@@ -38,13 +30,10 @@ resources:
   limits:
     cpu: 500m
     memory: 768Mi
-
 livenessProbe:
   enabled: false
-
 readinessProbe:
   enabled: false
-
 ingress:
   enabled: true
   className: nginx
@@ -60,3 +49,81 @@ ingress:
     - secretName: api-recba-me-tls
       hosts:
         - api.recba.me
+---
+fullnameOverride: cba-was-renewal-email-worker
+nameOverride: helm-charts
+replicaCount: 1
+image:
+  repository: ap-chuncheon-1.ocir.io/axdhp42jvukm/cba_was_renew
+  tag: prod-202607130500-454278d
+  pullPolicy: IfNotPresent
+imagePullSecrets:
+  - name: ocir-secret
+serviceAccount:
+  create: false
+  name: ""
+container:
+  name: email-worker
+  port: 3000
+  portName: http
+command:
+  - node
+args:
+  - dist/apps/email-worker/apps/email-worker/src/main.js
+envFrom:
+  - secretRef:
+      name: cba-was-renewal-env
+service:
+  enabled: false
+livenessProbe:
+  enabled: false
+readinessProbe:
+  enabled: false
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+  limits:
+    cpu: 300m
+    memory: 512Mi
+ingress:
+  enabled: false
+---
+fullnameOverride: cba-was-renewal-push-worker
+nameOverride: helm-charts
+replicaCount: 1
+image:
+  repository: ap-chuncheon-1.ocir.io/axdhp42jvukm/cba_was_renew
+  tag: prod-202607130500-454278d
+  pullPolicy: IfNotPresent
+imagePullSecrets:
+  - name: ocir-secret
+serviceAccount:
+  create: false
+  name: ""
+container:
+  name: push-worker
+  port: 3000
+  portName: http
+command:
+  - node
+args:
+  - dist/apps/push-worker/apps/push-worker/src/main.js
+envFrom:
+  - secretRef:
+      name: cba-was-renewal-env
+service:
+  enabled: false
+livenessProbe:
+  enabled: false
+readinessProbe:
+  enabled: false
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+  limits:
+    cpu: 300m
+    memory: 512Mi
+ingress:
+  enabled: false
