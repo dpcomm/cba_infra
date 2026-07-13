@@ -2,7 +2,7 @@ fullnameOverride: cba-was-renewal-push-worker
 replicaCount: 1
 image:
   repository: ap-chuncheon-1.ocir.io/axdhp42jvukm/cba_was_renew
-  tag: dev-202607121208-a69abd2
+  tag: dev-202607130041-2bd03d2
   pullPolicy: Always
 imagePullSecrets:
   - name: ocir-secret
