@@ -1,5 +1,6 @@
 terraform {
-  required_version = ">= 1.6.0"
+  # OCI's S3-compatible API rejects the chunked state upload used by 1.11+.
+  required_version = "~> 1.10.0"
 
   required_providers {
     kubernetes = {

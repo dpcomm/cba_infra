@@ -71,6 +71,7 @@ terraform/
   envs/
     dev-k3s/
     prod-oke/
+    shared-oci-storage/
 
 charts/
   cba-app/
@@ -153,6 +154,14 @@ node_ssh_public_key = "실제 SSH public key"
 - `modules`: 재사용 가능한 리소스 정의
 - `envs/dev-k3s`: dev k3s 내부 namespace 관리
 - `envs/prod-oke`: OCI 네트워크와 OKE 기반 리소스 생성
+- `envs/shared-oci-storage`: dev/prod 애플리케이션 Object Storage 버킷 생성
+
+`shared-oci-storage`는 private 버킷 `cba-connect-dev`,
+`cba-connect-prod`를 관리합니다. Terraform state 버킷
+`cba-terraform-state`와 애플리케이션 파일 버킷은 분리합니다.
+
+적용 절차는 [shared storage README](terraform/envs/shared-oci-storage/README.md)를
+따릅니다.
 
 ### `prod-oke`가 만드는 리소스
 
