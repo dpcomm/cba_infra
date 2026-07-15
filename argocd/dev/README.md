@@ -69,8 +69,9 @@ Expected applications:
 - `cba-push-worker-dev`
 - `cba-management-dev`
 
-All applications start with automated sync and `prune: false`. This adopts the
-existing DEV resources without allowing the first sync to delete unrelated resources.
+All applications use automated sync, self-healing, and `prune: true`. Pruning runs
+as the final sync wave so obsolete resources are removed only after desired resources
+have applied successfully.
 
 ## Verification
 

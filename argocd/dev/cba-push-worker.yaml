@@ -18,8 +18,9 @@ spec:
     namespace: cba-connect-dev
   syncPolicy:
     automated:
-      prune: false
+      prune: true
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      - PruneLast=true
   revisionHistoryLimit: 10

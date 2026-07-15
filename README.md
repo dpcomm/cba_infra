@@ -123,9 +123,9 @@ Argo CD가 그 Git commit을 감지해 Helm release를 동기화합니다.
 - Argo CD application: `argocd/prod/`
 
 초기 Argo CD 설치 및 Redis/RabbitMQ StatefulSet 전환 절차는
-[PROD GitOps runbook](argocd/prod/README.md)을 따른다. 기존
-`scripts/deploy/deploy-prod.sh`는 장애 대응용 수동 Helm 경로로만 남기며, 정상
-배포 경로로 사용하지 않는다.
+[PROD GitOps runbook](argocd/prod/README.md)을 따른다. Argo CD가 소유하는 PROD
+release에는 수동 `helm upgrade`를 실행하지 않는다. 장애 시에도 원하는 이미지
+태그가 기록된 `cba_infra` commit으로 되돌려 Argo CD가 롤백하도록 한다.
 
 기본 앱 chart 렌더 예시:
 
@@ -243,10 +243,10 @@ Plan: 14 to add, 0 to change, 0 to destroy.
 5. OKE kubeconfig 설정
 6. ingress-nginx 설치
 7. cert-manager와 prod ClusterIssuer 설치
-9. prod namespace/Secret 준비
-10. 고정 이미지 태그로 Helm render 확인
-11. 승인 후 Helm 배포
-12. DNS 전환 후 새 인증서 발급과 ingress 확인
+8. prod namespace/Secret 준비
+9. Argo CD 설치 및 PROD application 등록
+10. Argo CD Sync/Health 확인
+11. DNS 전환 후 새 인증서 발급과 ingress 확인
 
 예시 명령:
 
@@ -258,14 +258,9 @@ cd ../../..
 ./scripts/helm/install-prod-ingress-nginx.sh
 ./scripts/helm/install-prod-cert-manager.sh
 ./scripts/secrets/create-secrets.sh --env prod
-./scripts/deploy/deploy-prod.sh --was-tag <FIXED_WAS_IMAGE_TAG>
-```
-
-`deploy-prod.sh`는 기본적으로 dry-run 모드입니다. 실제 적용은 명시적으로 승인할 때만 실행합니다.
-
-```bash
-./scripts/deploy/deploy-prod.sh --was-tag <FIXED_WAS_IMAGE_TAG> --execute
-./scripts/deploy/deploy-prod.sh --was-tag <FIXED_WAS_IMAGE_TAG> --management-tag <FIXED_MANAGEMENT_IMAGE_TAG> --with-workers --execute
+./scripts/argocd/bootstrap-prod.sh
+./scripts/argocd/bootstrap-prod.sh --applications
+kubectl --context oke-prod -n argocd get applications
 ```
 
 ## Reserved Public IP 주의
@@ -317,12 +312,14 @@ Argo CD가 소유하는 DEV release에 수동 Helm 배포를 실행하지 않습
 
 ## Prod 배포 원칙
 
-- prod 실제 apply는 수동 승인 후 실행
+- prod 애플리케이션 배포는 GitHub Actions의 이미지 빌드와 GitOps tag commit으로만 실행
+- OKE의 application release에 수동 `helm upgrade` 또는 `kubectl set image` 실행 금지
+- 장애 롤백은 `cba_infra/main`의 배포 commit revert로 수행
 - prod 이미지는 고정 태그만 사용
 - dev 가변 태그 금지
 - legacy `cba-was` / `cba-was-renew` 배포 금지
 - 기본 배포 대상 WAS는 `cba-was-renewal`만 사용
-- admin/worker prod 배포는 `deploy-prod.sh`의 `--management-tag`, `--with-workers`를 명시한 경우에만 수행
+- management, API, worker는 각각 `argocd/prod/`의 Application이 소유
 
 ## OCIR 이미지 정리 정책
 

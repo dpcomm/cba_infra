@@ -69,8 +69,9 @@ register the complete application set:
 kubectl --context oke-prod get applications -n argocd
 ```
 
-Argo CD has automated sync with self-healing and `prune: false`; it will not
-delete resources simply because they are not represented by one of these apps.
+Argo CD has automated sync with self-healing and `prune: true`. Pruning runs as
+the final sync wave so obsolete resources are removed only after desired resources
+have applied successfully.
 
 ## Deployment flow
 
