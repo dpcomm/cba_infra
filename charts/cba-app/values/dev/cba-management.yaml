@@ -2,7 +2,7 @@ fullnameOverride: cba-management
 replicaCount: 1
 image:
   repository: ap-chuncheon-1.ocir.io/axdhp42jvukm/cba_management_v2
-  tag: dev-202607130409-06a9486
+  tag: dev-202607180932-771b7c1
   pullPolicy: Always
 imagePullSecrets:
   - name: ocir-secret
