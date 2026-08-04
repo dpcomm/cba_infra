@@ -3,7 +3,7 @@ nameOverride: helm-charts
 replicaCount: 1
 image:
   repository: ap-chuncheon-1.ocir.io/axdhp42jvukm/cba_was_renew
-  tag: prod-202608030859-f8ac020
+  tag: prod-202608041111-0510c6e
   pullPolicy: IfNotPresent
 imagePullSecrets:
   - name: ocir-secret
