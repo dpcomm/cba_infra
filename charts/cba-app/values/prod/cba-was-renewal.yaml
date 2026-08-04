@@ -39,6 +39,7 @@ ingress:
   className: nginx
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/proxy-body-size: "6m"
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
   hosts:
     - host: api.recba.me

@@ -36,7 +36,8 @@ readinessProbe:
 ingress:
   enabled: true
   className: nginx
-  annotations: {}
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "6m"
   hosts:
     - host: api.dev.recba.me
       paths:
